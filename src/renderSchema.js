@@ -20,84 +20,6 @@ function renderType(type, options) {
   return url ? `<a href="${url}">${type.name}</a>` : type.name
 }
 
-function renderObject(type, options) {
-  options = options || {}
-  const skipTitle = options.skipTitle === true
-  const printer = options.printer || console.log
-  const headingLevel = options.headingLevel || 1
-  const getTypeURL = options.getTypeURL
-  const isInputObject = type.kind === 'INPUT_OBJECT'
-  const genDescription = options.genDescription
-
-  if (!skipTitle) {
-    printer(`\n${'#'.repeat(headingLevel + 2)} ${type.name}\n`)
-  }
-  if (type.description) {
-    printer(`${type.description}\n`)
-  }
-  printer('<table>')
-  printer('<thead>')
-  printer('<tr>')
-  if (isInputObject) {
-    printer('<th colspan="2" align="left">Field</th>')
-  } else {
-    printer('<th align="left">Field</th>')
-    printer('<th align="right">Argument</th>')
-  }
-  printer('<th align="left">Type</th>')
-  printer('<th align="left">Description</th>')
-  printer('</tr>')
-  printer('</thead>')
-  printer('<tbody>')
-
-  const fields = isInputObject ? type.inputFields : type.fields
-  fields.forEach(field => {
-    printer('<tr>')
-    printer(
-      `<td colspan="2" valign="top"><strong>${field.name}</strong>${
-        field.isDeprecated ? ' ⚠️' : ''
-      }</td>`
-    )
-    printer(`<td valign="top">${renderType(field.type, { getTypeURL })}</td>`)
-    if (field.description || field.isDeprecated) {
-      printer('<td>')
-      if (field.description) {
-        printer(`\n${field.description}\n`)
-      }
-      if (field.isDeprecated) {
-        printer('<p>⚠️ <strong>DEPRECATED</strong></p>')
-        if (field.deprecationReason) {
-          printer('<blockquote>')
-          printer(`\n${field.deprecationReason}\n`)
-          printer('</blockquote>')
-        }
-      }
-      printer('</td>')
-    } else {
-      printer('<td></td>')
-    }
-    printer('</tr>')
-    if (!isInputObject && field.args.length) {
-      field.args.forEach((arg, i) => {
-        printer('<tr>')
-        printer(`<td colspan="2" align="right" valign="top">${arg.name}</td>`)
-        printer(`<td valign="top">${renderType(arg.type, { getTypeURL })}</td>`)
-        if (arg.description || genDescription) {
-          printer('<td>')
-          printer(`\n${arg.description}\n`)
-          printer(`YESS?`)
-          printer('</td>')
-        } else {
-          printer(`<td></td>`)
-        }
-        printer('</tr>')
-      })
-    }
-  })
-  printer('</tbody>')
-  printer('</table>')
-}
-
 function renderSchema(schema, options) {
   options = options || {}
   const title = options.title || 'Schema Types'
@@ -115,6 +37,7 @@ function renderSchema(schema, options) {
   }
 
   const types = schema.types.filter(type => !type.name.startsWith('__'))
+  console.log('typemapping')
   const typeMap = schema.types.reduce((typeMap, type) => {
     return Object.assign(typeMap, { [type.name]: type })
   }, {})
@@ -306,6 +229,113 @@ function renderSchema(schema, options) {
 
   if (epilogue) {
     printer(`\n${epilogue}`)
+  }
+
+  function renderObject(type, options) {
+    options = options || {}
+    const skipTitle = options.skipTitle === true
+    const printer = options.printer || console.log
+    const headingLevel = options.headingLevel || 1
+    const getTypeURL = options.getTypeURL
+    const isInputObject = type.kind === 'INPUT_OBJECT'
+    const isQuery = type.name === 'Query'
+    const isMutation = type.name === 'Mutation'
+    const genDescription = options.genDescription && (isQuery || isMutation)
+    if (!skipTitle) {
+      printer(`\n${'#'.repeat(headingLevel + 2)} ${type.name}\n`)
+    }
+    if (type.description) {
+      printer(`${type.description}\n`)
+    }
+    printer('<table>')
+    printer('<thead>')
+    printer('<tr>')
+    if (isInputObject) {
+      printer('<th colspan="2" align="left">Field</th>')
+    } else {
+      printer('<th align="left">Field</th>')
+      printer('<th align="right">Argument</th>')
+    }
+    printer('<th align="left">Type</th>')
+    printer('<th align="left">Description</th>')
+    printer('</tr>')
+    printer('</thead>')
+    printer('<tbody>')
+
+    const fields = isInputObject ? type.inputFields : type.fields
+    fields.forEach(field => {
+      printer('<tr>')
+      printer(
+        `<td colspan="2" valign="top"><strong>${field.name}</strong>${
+          field.isDeprecated ? ' ⚠️' : ''
+        }</td>`
+      )
+      printer(`<td valign="top">${renderType(field.type, { getTypeURL })}</td>`)
+      if (field.description || field.isDeprecated || genDescription) {
+        printer('<td>')
+        if (field.description) {
+          printer(`\n${field.description}\n`)
+        }
+        if (genDescription) {
+          const isRequired = kind => `${kind === 'NON_NULL' ? '!' : ''}`
+          const objData = name =>
+            name
+              ? `${
+                  typeMap[name].fields
+                    ? typeMap[name].fields
+                        .map(f => `    ${f.name}${isRequired(f.type.kind)}`)
+                        .join('\n')
+                    : ''
+                }`
+              : ''
+          const qArgs = `${field.args
+            .map(
+              arg =>
+                `${arg.name}: ${arg.type.ofType.name}${isRequired(
+                  arg.type.kind
+                )}`
+            )
+            .join(', ')}`
+          const qOutput = `${objData(field.type.ofType.name)}`
+          printer(`\n\n\`\`\`${type.name.toLowerCase()} {
+  ${field.name} ${qArgs ? `(${qArgs})` : ''} ${
+            qOutput ? `{\n${qOutput}\n  }` : ''
+          }
+}\n\`\`\`\n\n`)
+        }
+        if (field.isDeprecated) {
+          printer('<p>⚠️ <strong>DEPRECATED</strong></p>')
+          if (field.deprecationReason) {
+            printer('<blockquote>')
+            printer(`\n${field.deprecationReason}\n`)
+            printer('</blockquote>')
+          }
+        }
+        printer('</td>')
+      } else {
+        printer('<td></td>')
+      }
+      printer('</tr>')
+      if (!isInputObject && field.args.length) {
+        field.args.forEach((arg, i) => {
+          printer('<tr>')
+          printer(`<td colspan="2" align="right" valign="top">${arg.name}</td>`)
+          printer(
+            `<td valign="top">${renderType(arg.type, { getTypeURL })}</td>`
+          )
+          if (arg.description) {
+            printer('<td>')
+            printer(`\n${arg.description}\n`)
+            printer('</td>')
+          } else {
+            printer(`<td></td>`)
+          }
+          printer('</tr>')
+        })
+      }
+    })
+    printer('</tbody>')
+    printer('</table>')
   }
 }
 

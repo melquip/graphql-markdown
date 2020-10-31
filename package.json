@@ -21,7 +21,8 @@
     "lint:fix": "eslint --fix .",
     "test": "npm run lint && npm run test:coverage",
     "test:coverage": "jest --coverage",
-    "test:only": "jest"
+    "test:only": "jest",
+    "dev": "node ./src/index.js --update-file \"README-TEST.md\" --title \"API\" \"./schema.gql\" --gen"
   },
   "husky": {
     "hooks": {
