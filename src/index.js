@@ -79,7 +79,8 @@ function run(
         prologue: args.prologue,
         epilogue: args.epilogue,
         skipTableOfContents: args['toc'] === false,
-        headingLevel: args['heading-level']
+        headingLevel: args['heading-level'],
+        genDescription: args.gen
       }
       if (options.title === false) {
         options.title = ''
