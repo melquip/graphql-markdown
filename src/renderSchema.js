@@ -27,7 +27,7 @@ function renderObject(type, options) {
   const headingLevel = options.headingLevel || 1
   const getTypeURL = options.getTypeURL
   const isInputObject = type.kind === 'INPUT_OBJECT'
-  const genDescription = options.genDescription;
+  const genDescription = options.genDescription
 
   if (!skipTitle) {
     printer(`\n${'#'.repeat(headingLevel + 2)} ${type.name}\n`)
@@ -59,11 +59,10 @@ function renderObject(type, options) {
       }</td>`
     )
     printer(`<td valign="top">${renderType(field.type, { getTypeURL })}</td>`)
-    if (field.description || field.isDeprecated || genDescription) {
+    if (field.description || field.isDeprecated) {
       printer('<td>')
-      if (field.description || genDescription) {
+      if (field.description) {
         printer(`\n${field.description}\n`)
-        printer(`YESSSSSS`)
       }
       if (field.isDeprecated) {
         printer('<p>⚠️ <strong>DEPRECATED</strong></p>')
@@ -83,9 +82,10 @@ function renderObject(type, options) {
         printer('<tr>')
         printer(`<td colspan="2" align="right" valign="top">${arg.name}</td>`)
         printer(`<td valign="top">${renderType(arg.type, { getTypeURL })}</td>`)
-        if (arg.description) {
+        if (arg.description || genDescription) {
           printer('<td>')
           printer(`\n${arg.description}\n`)
+          printer(`YESS?`)
           printer('</td>')
         } else {
           printer(`<td></td>`)
@@ -205,7 +205,13 @@ function renderSchema(schema, options) {
         query.name === 'Query' ? '' : ' (' + query.name + ')'
       }`
     )
-    renderObject(query, { skipTitle: true, headingLevel, printer, getTypeURL, genDescription })
+    renderObject(query, {
+      skipTitle: true,
+      headingLevel,
+      printer,
+      getTypeURL,
+      genDescription
+    })
   }
 
   if (mutation) {
