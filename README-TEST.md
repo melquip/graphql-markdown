@@ -53,14 +53,21 @@
 ```
 query {
   getDocument (id: String!) {
-    id
-    name
-    rent
-    requires
-    salesCoworkerId
-    securityDeposit
-    type
-    url
+    id: ID!
+    name: String!
+    rent {
+      amount: Float!
+      currency: String!
+      startDate: String!
+    }
+    requires: [String!]
+    salesCoworkerId: ID!
+    securityDeposit {
+      amount: Float!
+      currency: String!
+    }
+    type: String!
+    url: String!
   }
 }
 ```
@@ -95,16 +102,16 @@ query {
 ```
 query {
   getUser (id: String!) {
-    active
-    company
-    email
-    firstName
-    id
-    lastName
-    phone
-    timestamp
-    type
-    walletUrl
+    active: Boolean!
+    company: String!
+    email: String!
+    firstName: String!
+    id: ID!
+    lastName: String!
+    phone: String
+    timestamp: String
+    type: String!
+    walletUrl: String
   }
 }
 ```
@@ -147,8 +154,8 @@ query {
 ```
 query {
   validateUserWallet (id: String!) {
-    token
-    validWallet
+    token: String!
+    validWallet: Boolean!
   }
 }
 ```
@@ -203,14 +210,21 @@ mutation {
     type: String!
     url: String!
   }) {
-    id
-    name
-    rent
-    requires
-    salesCoworkerId
-    securityDeposit
-    type
-    url
+    id: ID!
+    name: String!
+    rent {
+      amount: Float!
+      currency: String!
+      startDate: String!
+    }
+    requires: [String!]
+    salesCoworkerId: ID!
+    securityDeposit {
+      amount: Float!
+      currency: String!
+    }
+    type: String!
+    url: String!
   }
 }
 ```
@@ -231,9 +245,9 @@ mutation {
 ```
 mutation {
   addDocumentType (name: String!) {
-    id
-    name
-    type
+    id: ID!
+    name: String!
+    type: String
   }
 }
 ```
@@ -260,16 +274,16 @@ mutation {
     lastName: String!
     password: String!
   }) {
-    active
-    company
-    email
-    firstName
-    id
-    lastName
-    phone
-    timestamp
-    type
-    walletUrl
+    active: Boolean!
+    company: String!
+    email: String!
+    firstName: String!
+    id: ID!
+    lastName: String!
+    phone: String
+    timestamp: String
+    type: String!
+    walletUrl: String
   }
 }
 ```
@@ -295,16 +309,16 @@ mutation {
     lastName: String
     salesId: String!
   }) {
-    active
-    company
-    email
-    firstName
-    id
-    lastName
-    phone
-    timestamp
-    type
-    walletUrl
+    active: Boolean!
+    company: String!
+    email: String!
+    firstName: String!
+    id: ID!
+    lastName: String!
+    phone: String
+    timestamp: String
+    type: String!
+    walletUrl: String
   }
 }
 ```
@@ -333,16 +347,16 @@ mutation {
     password: String!
     phone: String
   }) {
-    active
-    company
-    email
-    firstName
-    id
-    lastName
-    phone
-    timestamp
-    type
-    walletUrl
+    active: Boolean!
+    company: String!
+    email: String!
+    firstName: String!
+    id: ID!
+    lastName: String!
+    phone: String
+    timestamp: String
+    type: String!
+    walletUrl: String
   }
 }
 ```
@@ -363,16 +377,16 @@ mutation {
 ```
 mutation {
   salesRegister (email: String!) {
-    active
-    company
-    email
-    firstName
-    id
-    lastName
-    phone
-    timestamp
-    type
-    walletUrl
+    active: Boolean!
+    company: String!
+    email: String!
+    firstName: String!
+    id: ID!
+    lastName: String!
+    phone: String
+    timestamp: String
+    type: String!
+    walletUrl: String
   }
 }
 ```

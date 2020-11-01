@@ -278,7 +278,7 @@ function renderSchema(schema, options) {
         }
         if (genDescription) {
           const isRequired = kind => `${kind === 'NON_NULL' ? '!' : ''}`
-          const objData = (objType, showTypes = false, level = 0) => {
+          const objData = (objType, showTypes = false, level = 2) => {
             const name = objType.ofType ? objType.ofType.name : objType.name
             const typeFields = name
               ? typeMap[name].fields
@@ -288,33 +288,52 @@ function renderSchema(schema, options) {
                 : []
               : []
             const isInput = name ? !!typeMap[name].inputFields : false
-            const getTypeof = fType => {
-              const { kind, name, ofType } = fType
+            const isObject = objType.ofType && objType.ofType.kind === 'OBJECT'
+            const getTypeof = (fType, ignoreObject = false) => {
+              const { kind, name, ofType } = fType || {}
               const { kind: ofKind, name: ofName, ofType: ofOfType } =
                 ofType || {}
-
-              return `${ofType && ofKind === 'LIST' ? '[' : ''}${
-                ofType
-                  ? ofKind === 'LIST'
-                    ? ofOfType.ofType.name
-                    : ofName
-                  : kind === 'INPUT_OBJECT'
-                  ? objData(fType, true, level + 1)
-                  : name
-              }${
-                ofType && ofKind === 'LIST'
-                  ? `${isRequired(ofOfType.kind)}]`
+              if (ignoreObject) console.log({ kind, name, ofType })
+              return !isObject || ignoreObject
+                ? showTypes
+                  ? `: ${ofType && ofKind === 'LIST' ? '[' : ''}${
+                      ofType
+                        ? ofKind === 'LIST'
+                          ? ofOfType.ofType.name
+                          : ofName
+                        : kind === 'INPUT_OBJECT'
+                        ? objData(fType, true, level + 1)
+                        : name
+                    }${
+                      ofType && ofKind === 'LIST'
+                        ? `${isRequired(ofOfType.kind)}]`
+                        : ''
+                    }${isRequired(kind)}`
                   : ''
-              }${isRequired(kind)}`
+                : `${
+                    kind === 'OBJECT'
+                      ? ` {\n${objData(
+                          fType,
+                          showTypes,
+                          level + 1
+                        )}\n${'  '.repeat(level)}}`
+                      : showTypes
+                      ? `${getTypeof(
+                          kind === 'LIST'
+                            ? {
+                                kind,
+                                name,
+                                ofType: fType
+                              }
+                            : fType,
+                          true
+                        )}`
+                      : ''
+                  }`
             }
             return `${isInput ? `{\n` : ''}${typeFields
-              .map(
-                f =>
-                  `    ${'  '.repeat(level)}${f.name}${
-                    showTypes ? `: ${getTypeof(f.type)}` : ''
-                  }`
-              )
-              .join('\n')}${isInput ? `\n${'  '.repeat(level)}  }` : ''}`
+              .map(f => `${'  '.repeat(level)}${f.name}${getTypeof(f.type)}`)
+              .join('\n')}${isInput ? `\n${'  '.repeat(level - 1)}}` : ''}`
           }
 
           const qArgs = `${field.args
@@ -327,7 +346,7 @@ function renderSchema(schema, options) {
                 }`
             )
             .join(', ')}`
-          const qOutput = `${objData(field.type)}` // , true
+          const qOutput = `${objData(field.type, true)}` // , true
           printer(`\n\`\`\`\n${type.name.toLowerCase()} {
   ${field.name} ${qArgs ? `(${qArgs})` : ''} ${
             qOutput ? `{\n${qOutput}\n  }` : ''
