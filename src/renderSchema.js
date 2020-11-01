@@ -278,9 +278,8 @@ function renderSchema(schema, options) {
         }
         if (genDescription) {
           const isRequired = kind => `${kind === 'NON_NULL' ? '!' : ''}`
-          const objData = (objType, showTypes = false) => {
-            // console.log(showTypes ? typeMap[name] : '')
-            const name = objType.ofType.name
+          const objData = (objType, showTypes = false, level = 0) => {
+            const name = objType.ofType ? objType.ofType.name : objType.name
             const typeFields = name
               ? typeMap[name].fields
                 ? typeMap[name].fields
@@ -289,30 +288,33 @@ function renderSchema(schema, options) {
                 : []
               : []
             const isInput = name ? !!typeMap[name].inputFields : false
+            const getTypeof = fType => {
+              const { kind, name, ofType } = fType
+              const { kind: ofKind, name: ofName, ofType: ofOfType } =
+                ofType || {}
+
+              return `${ofType && ofKind === 'LIST' ? '[' : ''}${
+                ofType
+                  ? ofKind === 'LIST'
+                    ? ofOfType.ofType.name
+                    : ofName
+                  : kind === 'INPUT_OBJECT'
+                  ? objData(fType, true, level + 1)
+                  : name
+              }${
+                ofType && ofKind === 'LIST'
+                  ? `${isRequired(ofOfType.kind)}]`
+                  : ''
+              }${isRequired(kind)}`
+            }
             return `${isInput ? `{\n` : ''}${typeFields
               .map(
                 f =>
-                  `    ${f.name}${
-                    showTypes
-                      ? `: ${
-                          f.type.ofType && f.type.ofType.kind === 'LIST'
-                            ? '['
-                            : ''
-                        }${
-                          f.type.ofType
-                            ? f.type.ofType.name
-                              ? f.type.ofType.name
-                              : f.type.ofType.ofType.ofType.name
-                            : f.type.name
-                        }${
-                          f.type.ofType && f.type.ofType.kind === 'LIST'
-                            ? `${isRequired(f.type.ofType.ofType.kind)}]`
-                            : ''
-                        }${isRequired(f.type.kind)}`
-                      : ''
+                  `    ${'  '.repeat(level)}${f.name}${
+                    showTypes ? `: ${getTypeof(f.type)}` : ''
                   }`
               )
-              .join('\n')}${isInput ? `\n  }` : ''}`
+              .join('\n')}${isInput ? `\n${'  '.repeat(level)}  }` : ''}`
           }
 
           const qArgs = `${field.args

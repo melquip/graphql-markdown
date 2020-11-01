@@ -50,7 +50,6 @@
 <td valign="top"><a href="#odocument">ODocument</a>!</td>
 <td>
 
-
 ```
 query {
   getDocument (id: String!) {
@@ -79,7 +78,6 @@ query {
 <td valign="top">[<a href="#odocumenttype">ODocumentType</a>!]!</td>
 <td>
 
-
 ```
 query {
   getDocumentTypes  
@@ -93,7 +91,6 @@ query {
 <td colspan="2" valign="top"><strong>getUser</strong></td>
 <td valign="top"><a href="#ouser">OUser</a>!</td>
 <td>
-
 
 ```
 query {
@@ -125,7 +122,6 @@ query {
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-
 ```
 query {
   login (data: {
@@ -147,7 +143,6 @@ query {
 <td colspan="2" valign="top"><strong>validateUserWallet</strong></td>
 <td valign="top"><a href="#walletandtoken">WalletAndToken</a>!</td>
 <td>
-
 
 ```
 query {
@@ -185,7 +180,6 @@ query {
 <td valign="top"><a href="#odocument">ODocument</a>!</td>
 <td>
 
-
 ```
 mutation {
   addDocument (data: {
@@ -194,11 +188,18 @@ mutation {
     firstName: String
     lastName: String
     name: String!
-    rent: IRent
+    rent: {
+      amount: Float!
+      currency: String!
+      startDate: String!
+    }
     requires: [String!]!
     salesCoworkerId: ID
     salesId: ID
-    securityDeposit: ISecurityDeposit
+    securityDeposit: {
+      amount: Float!
+      currency: String!
+    }
     type: String!
     url: String!
   }) {
@@ -227,7 +228,6 @@ mutation {
 <td valign="top"><a href="#odocumenttype">ODocumentType</a>!</td>
 <td>
 
-
 ```
 mutation {
   addDocumentType (name: String!) {
@@ -250,7 +250,6 @@ mutation {
 <td colspan="2" valign="top"><strong>coworkerOnboarding</strong></td>
 <td valign="top"><a href="#ouser">OUser</a>!</td>
 <td>
-
 
 ```
 mutation {
@@ -288,7 +287,6 @@ mutation {
 <td valign="top"><a href="#ouser">OUser</a>!</td>
 <td>
 
-
 ```
 mutation {
   coworkerRegister (data: {
@@ -323,7 +321,6 @@ mutation {
 <td colspan="2" valign="top"><strong>salesOnboarding</strong></td>
 <td valign="top"><a href="#ouser">OUser</a>!</td>
 <td>
-
 
 ```
 mutation {
@@ -363,7 +360,6 @@ mutation {
 <td valign="top"><a href="#ouser">OUser</a>!</td>
 <td>
 
-
 ```
 mutation {
   salesRegister (email: String!) {
@@ -393,7 +389,6 @@ mutation {
 <td colspan="2" valign="top"><strong>signDocument</strong></td>
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
-
 
 ```
 mutation {
