@@ -51,16 +51,17 @@
 <td>
 
 
-```query {
+```
+query {
   getDocument (id: String!) {
-    id!
-    name!
+    id
+    name
     rent
     requires
-    salesCoworkerId!
+    salesCoworkerId
     securityDeposit
-    type!
-    url!
+    type
+    url
   }
 }
 ```
@@ -79,7 +80,8 @@
 <td>
 
 
-```query {
+```
+query {
   getDocumentTypes  
 }
 ```
@@ -93,17 +95,18 @@
 <td>
 
 
-```query {
+```
+query {
   getUser (id: String!) {
-    active!
-    company!
-    email!
-    firstName!
-    id!
-    lastName!
+    active
+    company
+    email
+    firstName
+    id
+    lastName
     phone
     timestamp
-    type!
+    type
     walletUrl
   }
 }
@@ -123,8 +126,12 @@
 <td>
 
 
-```query {
-  login (data: ILogin!) 
+```
+query {
+  login (data: {
+    email: String!
+    password: String!
+  }) 
 }
 ```
 
@@ -142,10 +149,11 @@
 <td>
 
 
-```query {
+```
+query {
   validateUserWallet (id: String!) {
-    token!
-    validWallet!
+    token
+    validWallet
   }
 }
 ```
@@ -178,16 +186,30 @@
 <td>
 
 
-```mutation {
-  addDocument (data: IDocument!) {
-    id!
-    name!
+```
+mutation {
+  addDocument (data: {
+    coworkerId: ID
+    email: String
+    firstName: String
+    lastName: String
+    name: String!
+    rent: IRent
+    requires: null!
+    salesCoworkerId: ID
+    salesId: ID
+    securityDeposit: ISecurityDeposit
+    type: String!
+    url: String!
+  }) {
+    id
+    name
     rent
     requires
-    salesCoworkerId!
+    salesCoworkerId
     securityDeposit
-    type!
-    url!
+    type
+    url
   }
 }
 ```
@@ -206,10 +228,11 @@
 <td>
 
 
-```mutation {
+```
+mutation {
   addDocumentType (name: String!) {
-    id!
-    name!
+    id
+    name
     type
   }
 }
@@ -229,17 +252,24 @@
 <td>
 
 
-```mutation {
-  coworkerOnboarding (data: ICoworkerOnboarding!) {
-    active!
-    company!
-    email!
-    firstName!
-    id!
-    lastName!
+```
+mutation {
+  coworkerOnboarding (data: {
+    confirmPassword: String!
+    firstName: String!
+    id: String!
+    lastName: String!
+    password: String!
+  }) {
+    active
+    company
+    email
+    firstName
+    id
+    lastName
     phone
     timestamp
-    type!
+    type
     walletUrl
   }
 }
@@ -259,17 +289,23 @@
 <td>
 
 
-```mutation {
-  coworkerRegister (data: ICoworkerRegister!) {
-    active!
-    company!
-    email!
-    firstName!
-    id!
-    lastName!
+```
+mutation {
+  coworkerRegister (data: {
+    email: String!
+    firstName: String
+    lastName: String
+    salesId: String!
+  }) {
+    active
+    company
+    email
+    firstName
+    id
+    lastName
     phone
     timestamp
-    type!
+    type
     walletUrl
   }
 }
@@ -289,17 +325,26 @@
 <td>
 
 
-```mutation {
-  salesOnboarding (data: ISalesOnboarding!) {
-    active!
-    company!
-    email!
-    firstName!
-    id!
-    lastName!
+```
+mutation {
+  salesOnboarding (data: {
+    company: String!
+    confirmPassword: String!
+    firstName: String!
+    id: String!
+    lastName: String!
+    password: String!
+    phone: String
+  }) {
+    active
+    company
+    email
+    firstName
+    id
+    lastName
     phone
     timestamp
-    type!
+    type
     walletUrl
   }
 }
@@ -319,17 +364,18 @@
 <td>
 
 
-```mutation {
+```
+mutation {
   salesRegister (email: String!) {
-    active!
-    company!
-    email!
-    firstName!
-    id!
-    lastName!
+    active
+    company
+    email
+    firstName
+    id
+    lastName
     phone
     timestamp
-    type!
+    type
     walletUrl
   }
 }
@@ -349,7 +395,8 @@
 <td>
 
 
-```mutation {
+```
+mutation {
   signDocument (id: String!) 
 }
 ```

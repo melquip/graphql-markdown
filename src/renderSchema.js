@@ -278,26 +278,43 @@ function renderSchema(schema, options) {
         }
         if (genDescription) {
           const isRequired = kind => `${kind === 'NON_NULL' ? '!' : ''}`
-          const objData = name =>
-            name
-              ? `${
-                  typeMap[name].fields
-                    ? typeMap[name].fields
-                        .map(f => `    ${f.name}${isRequired(f.type.kind)}`)
-                        .join('\n')
-                    : ''
-                }`
-              : ''
+          const objData = (objType, showTypes = false) => {
+            // console.log(showTypes ? typeMap[name] : '')
+            const name = objType.ofType.name
+            const typeFields = name
+              ? typeMap[name].fields
+                ? typeMap[name].fields
+                : typeMap[name].inputFields
+                ? typeMap[name].inputFields
+                : []
+              : []
+            const isInput = name ? !!typeMap[name].inputFields : false
+            return `${isInput ? `{\n` : ''}${typeFields
+              .map(
+                f =>
+                  `    ${f.name}${
+                    showTypes
+                      ? `: ${
+                          f.type.ofType ? f.type.ofType.name : f.type.name
+                        }${isRequired(f.type.kind)}`
+                      : ''
+                  }`
+              )
+              .join('\n')}${isInput ? `\n  }` : ''}`
+          }
+
           const qArgs = `${field.args
             .map(
               arg =>
-                `${arg.name}: ${arg.type.ofType.name}${isRequired(
-                  arg.type.kind
-                )}`
+                `${arg.name}: ${
+                  arg.type.ofType.kind === 'INPUT_OBJECT'
+                    ? `${objData(arg.type, true)}`
+                    : `${arg.type.ofType.name + isRequired(arg.type.kind)}`
+                }`
             )
             .join(', ')}`
-          const qOutput = `${objData(field.type.ofType.name)}`
-          printer(`\n\n\`\`\`${type.name.toLowerCase()} {
+          const qOutput = `${objData(field.type)}` // , true
+          printer(`\n\n\`\`\`\n${type.name.toLowerCase()} {
   ${field.name} ${qArgs ? `(${qArgs})` : ''} ${
             qOutput ? `{\n${qOutput}\n  }` : ''
           }
