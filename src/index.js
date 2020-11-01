@@ -80,7 +80,9 @@ function run(
         epilogue: args.epilogue,
         skipTableOfContents: args['toc'] === false,
         headingLevel: args['heading-level'],
-        genDescription: args.gen
+        genQuery: args.genQuery,
+        argTypes: args.argTypes,
+        outTypes: args.outTypes
       }
       if (options.title === false) {
         options.title = ''

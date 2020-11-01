@@ -30,14 +30,15 @@ function renderSchema(schema, options) {
   const printer = options.printer || console.log
   const headingLevel = options.headingLevel || 1
   const unknownTypeURL = options.unknownTypeURL
-  const genDescription = options.genDescription
+  const genQuery = options.genQuery
+  const argTypes = options.argTypes ? options.argTypes : true
+  const outTypes = options.outTypes ? options.outTypes : false
 
   if (schema.__schema) {
     schema = schema.__schema
   }
 
   const types = schema.types.filter(type => !type.name.startsWith('__'))
-  console.log('typemapping')
   const typeMap = schema.types.reduce((typeMap, type) => {
     return Object.assign(typeMap, { [type.name]: type })
   }, {})
@@ -133,7 +134,9 @@ function renderSchema(schema, options) {
       headingLevel,
       printer,
       getTypeURL,
-      genDescription
+      genQuery,
+      argTypes,
+      outTypes
     })
   }
 
@@ -148,7 +151,9 @@ function renderSchema(schema, options) {
       headingLevel,
       printer,
       getTypeURL,
-      genDescription
+      genQuery,
+      argTypes,
+      outTypes
     })
   }
 
@@ -240,7 +245,9 @@ function renderSchema(schema, options) {
     const isInputObject = type.kind === 'INPUT_OBJECT'
     const isQuery = type.name === 'Query'
     const isMutation = type.name === 'Mutation'
-    const genDescription = options.genDescription && (isQuery || isMutation)
+    const genQuery = options.genQuery && (isQuery || isMutation)
+    const argTypes = options.argTypes
+    const outTypes = options.outTypes
     if (!skipTitle) {
       printer(`\n${'#'.repeat(headingLevel + 2)} ${type.name}\n`)
     }
@@ -271,12 +278,12 @@ function renderSchema(schema, options) {
         }</td>`
       )
       printer(`<td valign="top">${renderType(field.type, { getTypeURL })}</td>`)
-      if (field.description || field.isDeprecated || genDescription) {
+      if (field.description || field.isDeprecated || genQuery) {
         printer('<td>')
         if (field.description) {
           printer(`\n${field.description}\n`)
         }
-        if (genDescription) {
+        if (genQuery) {
           const isRequired = kind => `${kind === 'NON_NULL' ? '!' : ''}`
           const objData = (objType, showTypes = false, level = 2) => {
             const name = objType.ofType ? objType.ofType.name : objType.name
@@ -293,7 +300,6 @@ function renderSchema(schema, options) {
               const { kind, name, ofType } = fType || {}
               const { kind: ofKind, name: ofName, ofType: ofOfType } =
                 ofType || {}
-              if (ignoreObject) console.log({ kind, name, ofType })
               return !isObject || ignoreObject
                 ? showTypes
                   ? `: ${ofType && ofKind === 'LIST' ? '[' : ''}${
@@ -341,12 +347,12 @@ function renderSchema(schema, options) {
               arg =>
                 `${arg.name}: ${
                   arg.type.ofType.kind === 'INPUT_OBJECT'
-                    ? `${objData(arg.type, true)}`
+                    ? `${objData(arg.type, argTypes)}`
                     : `${arg.type.ofType.name + isRequired(arg.type.kind)}`
                 }`
             )
             .join(', ')}`
-          const qOutput = `${objData(field.type, true)}` // , true
+          const qOutput = `${objData(field.type, outTypes)}`
           printer(`\n\`\`\`\n${type.name.toLowerCase()} {
   ${field.name} ${qArgs ? `(${qArgs})` : ''} ${
             qOutput ? `{\n${qOutput}\n  }` : ''
