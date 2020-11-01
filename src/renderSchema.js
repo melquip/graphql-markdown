@@ -295,7 +295,19 @@ function renderSchema(schema, options) {
                   `    ${f.name}${
                     showTypes
                       ? `: ${
-                          f.type.ofType ? f.type.ofType.name : f.type.name
+                          f.type.ofType && f.type.ofType.kind === 'LIST'
+                            ? '['
+                            : ''
+                        }${
+                          f.type.ofType
+                            ? f.type.ofType.name
+                              ? f.type.ofType.name
+                              : f.type.ofType.ofType.ofType.name
+                            : f.type.name
+                        }${
+                          f.type.ofType && f.type.ofType.kind === 'LIST'
+                            ? `${isRequired(f.type.ofType.ofType.kind)}]`
+                            : ''
                         }${isRequired(f.type.kind)}`
                       : ''
                   }`
@@ -314,7 +326,7 @@ function renderSchema(schema, options) {
             )
             .join(', ')}`
           const qOutput = `${objData(field.type)}` // , true
-          printer(`\n\n\`\`\`\n${type.name.toLowerCase()} {
+          printer(`\n\`\`\`\n${type.name.toLowerCase()} {
   ${field.name} ${qArgs ? `(${qArgs})` : ''} ${
             qOutput ? `{\n${qOutput}\n  }` : ''
           }

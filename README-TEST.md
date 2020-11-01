@@ -195,7 +195,7 @@ mutation {
     lastName: String
     name: String!
     rent: IRent
-    requires: null!
+    requires: [String!]!
     salesCoworkerId: ID
     salesId: ID
     securityDeposit: ISecurityDeposit
