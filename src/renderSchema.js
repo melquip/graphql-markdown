@@ -315,7 +315,7 @@ function renderSchema(schema, options) {
                           ? ofOfType.ofType.name
                           : ofName
                         : kind === 'INPUT_OBJECT'
-                        ? objData(fType, true, level + 1)
+                        ? objData(fType, true, level + 1, outputValidation)
                         : name
                     }${
                       ofType && ofKind === 'LIST'
@@ -328,7 +328,8 @@ function renderSchema(schema, options) {
                       ? ` {\n${objData(
                           fType,
                           showTypes,
-                          level + 1
+                          level + 1,
+                          outputValidation
                         )}\n${'  '.repeat(level)}}`
                       : showTypes
                       ? `${getTypeof(
@@ -350,13 +351,19 @@ function renderSchema(schema, options) {
                 .join('\n')}${isInput ? `\n${'  '.repeat(level - 1)}}` : ''}`
             } else {
               return typeFields.map(f => {
-                const type = getTypeof(f.type)
+                let type = getTypeof(f.type)
+                if (f.type.kind === 'INPUT_OBJECT') {
+                  type = objData(f.type, true, level + 1, outputValidation)
+                } else {
+                  type = type.replace(/(: |\[|\]|!)/gm, '').toLowerCase()
+                  type = type === 'float' ? 'number' : type
+                }
                 const isArray = f.type.ofType
                   ? f.type.ofType.kind === 'LIST'
                   : false
                 return {
                   name: f.name,
-                  type: type.replace(/(: |\[|\]|!)/gm, '').toLowerCase(),
+                  type,
                   isArray,
                   isArrayRequired: isArray ? f.type.kind === 'NON_NULL' : false,
                   required:
@@ -441,11 +448,9 @@ function renderSchema(schema, options) {
             }
 }\n\`\`\`\n\n`
           }
-          // allQueries[field.name]({
-          //   data: {
-          //     email: 'yes@yes.yes'
-          //   }
-          // })
+          allQueries[field.name]({
+            data: {}
+          })
         }
         if (field.isDeprecated) {
           printer('<p>⚠️ <strong>DEPRECATED</strong></p>')
