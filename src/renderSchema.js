@@ -448,9 +448,11 @@ function renderSchema(schema, options) {
             }
 }\n\`\`\`\n\n`
           }
+          /* test dev
           allQueries[field.name]({
             data: {}
-          })
+          }) 
+          */
         }
         if (field.isDeprecated) {
           printer('<p>⚠️ <strong>DEPRECATED</strong></p>')
@@ -486,7 +488,6 @@ function renderSchema(schema, options) {
     printer('</tbody>')
     printer('</table>')
   }
-
   return allQueries
 }
 
