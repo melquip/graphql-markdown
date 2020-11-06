@@ -37,7 +37,10 @@ function updateSchema(path, schema, options) {
       const printer = line => {
         newContent += `${line}\n`
       }
-      renderSchema(schema, Object.assign({}, options, { printer }))
+      const allQueries = renderSchema(
+        schema,
+        Object.assign({}, options, { printer })
+      )
       if (!doc.trim()) {
         doc = '<!-- START graphql-markdown -->\n<!-- END graphql-markdown -->\n'
       }
@@ -51,7 +54,7 @@ function updateSchema(path, schema, options) {
         if (err) {
           return reject(err)
         }
-        resolve()
+        resolve(allQueries)
       })
     })
   })

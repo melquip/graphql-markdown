@@ -72,7 +72,7 @@ function run(
       return obj
     }, {})
     const loadOptions = { headers }
-    loadSchemaJSON(schemaPath, loadOptions).then(schema => {
+    return loadSchemaJSON(schemaPath, loadOptions).then(schema => {
       const options = {
         title: args.title,
         skipTitle: false,
@@ -98,11 +98,12 @@ function run(
       }
       const updateFile = args['update-file']
       if (updateFile) {
-        updateSchema(updateFile, schema, options)
-          .then(() => {
+        return updateSchema(updateFile, schema, options)
+          .then(r => {
             if (exit) {
               safeExit(0)
             }
+            return r
           })
           .catch(err => {
             console.error(err)
@@ -111,10 +112,11 @@ function run(
             }
           })
       } else {
-        renderSchema(schema, options)
+        const queryOutput = renderSchema(schema, options)
         if (exit) {
           safeExit(0)
         }
+        return queryOutput
       }
     })
   } else {
@@ -135,5 +137,5 @@ module.exports = {
 }
 
 if (require.main === module) {
-  run()
+  run().then(r => console.log(r))
 }

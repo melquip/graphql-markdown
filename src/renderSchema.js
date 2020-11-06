@@ -1,3 +1,4 @@
+/* eslint-disable valid-typeof */
 'use strict'
 function sortBy(arr, property) {
   arr.sort((a, b) => {
@@ -33,6 +34,7 @@ function renderSchema(schema, options) {
   const genQuery = options.genQuery
   const argTypes = options.argTypes ? options.argTypes : true
   const outTypes = options.outTypes ? options.outTypes : false
+  const allQueries = {}
 
   if (schema.__schema) {
     schema = schema.__schema
@@ -285,7 +287,12 @@ function renderSchema(schema, options) {
         }
         if (genQuery) {
           const isRequired = kind => `${kind === 'NON_NULL' ? '!' : ''}`
-          const objData = (objType, showTypes = false, level = 2) => {
+          const objData = (
+            objType,
+            showTypes = false,
+            level = 2,
+            outputValidation = false
+          ) => {
             const name = objType.ofType ? objType.ofType.name : objType.name
             const typeFields = name
               ? typeMap[name].fields
@@ -337,9 +344,27 @@ function renderSchema(schema, options) {
                       : ''
                   }`
             }
-            return `${isInput ? `{\n` : ''}${typeFields
-              .map(f => `${'  '.repeat(level)}${f.name}${getTypeof(f.type)}`)
-              .join('\n')}${isInput ? `\n${'  '.repeat(level - 1)}}` : ''}`
+            if (!outputValidation) {
+              return `${isInput ? `{\n` : ''}${typeFields
+                .map(f => `${'  '.repeat(level)}${f.name}${getTypeof(f.type)}`)
+                .join('\n')}${isInput ? `\n${'  '.repeat(level - 1)}}` : ''}`
+            } else {
+              return typeFields.map(f => {
+                const type = getTypeof(f.type)
+                const isArray = f.type.ofType
+                  ? f.type.ofType.kind === 'LIST'
+                  : false
+                return {
+                  name: f.name,
+                  type: type.replace(/(: |\[|\]|!)/gm, '').toLowerCase(),
+                  isArray,
+                  isArrayRequired: isArray ? f.type.kind === 'NON_NULL' : false,
+                  required:
+                    (isArray ? f.type.ofType.ofType.kind : f.type.kind) ===
+                    'NON_NULL'
+                }
+              })
+            }
           }
 
           const qArgs = `${field.args
@@ -353,11 +378,74 @@ function renderSchema(schema, options) {
             )
             .join(', ')}`
           const qOutput = `${objData(field.type, outTypes)}`
-          printer(`\n\`\`\`\n${type.name.toLowerCase()} {
+          const finalQuery = `\n\`\`\`\n${type.name.toLowerCase()} {
   ${field.name} ${qArgs ? `(${qArgs})` : ''} ${
             qOutput ? `{\n${qOutput}\n  }` : ''
           }
-}\n\`\`\`\n\n`)
+}\n\`\`\`\n\n`
+          printer(finalQuery)
+
+          allQueries[field.name] = data => {
+            const queryArgs = field.args.map(arg => {
+              const type =
+                arg.type.ofType.kind === 'INPUT_OBJECT'
+                  ? objData(arg.type, true, 2, true)
+                  : arg.type.ofType.name.toLowerCase()
+              const isArray = arg.type.ofType
+                ? arg.type.ofType.kind === 'LIST'
+                : false
+              return {
+                name: arg.name,
+                type,
+                isArray,
+                isArrayRequired: isArray ? arg.type.kind === 'NON_NULL' : false,
+                required:
+                  (isArray ? arg.type.ofType.ofType.kind : arg.type.kind) ===
+                  'NON_NULL'
+              }
+            })
+            let qArgs = ''
+            // validation
+            const validateData = (qArg, data) => {
+              const argInData = qArg.name in data
+              const isRequiredArg =
+                qArg.required || (qArg.isArray && qArg.isArrayRequired)
+              if (!argInData && isRequiredArg) {
+                return console.error(
+                  `\nQuery missing required parameter "${qArg.name}"!`
+                )
+              }
+              if (argInData) {
+                if (typeof qArg.type === 'string') {
+                  if (typeof data[qArg.name] !== qArg.type) {
+                    return console.error(
+                      `Argument "${qArg.name}" should be of type "${qArg.type}".`
+                    )
+                  }
+                } else {
+                  console.log('recurse', qArg, data[qArg.name])
+                  for (const qSubArg of qArg.type) {
+                    validateData(qSubArg, data[qArg.name])
+                  }
+                  console.log('\n\nreturned from recurse\n')
+                }
+              }
+            }
+            for (const qArg of queryArgs) {
+              validateData(qArg, data)
+            }
+
+            return `\n\`\`\`\n${type.name.toLowerCase()} {
+  ${field.name} ${qArgs ? `(${qArgs})` : ''} ${
+              qOutput ? `{\n${qOutput}\n  }` : ''
+            }
+}\n\`\`\`\n\n`
+          }
+          // allQueries[field.name]({
+          //   data: {
+          //     email: 'yes@yes.yes'
+          //   }
+          // })
         }
         if (field.isDeprecated) {
           printer('<p>⚠️ <strong>DEPRECATED</strong></p>')
@@ -393,6 +481,8 @@ function renderSchema(schema, options) {
     printer('</tbody>')
     printer('</table>')
   }
+
+  return allQueries
 }
 
 module.exports = renderSchema
