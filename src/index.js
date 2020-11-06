@@ -137,5 +137,5 @@ module.exports = {
 }
 
 if (require.main === module) {
-  run().then(r => console.log(r))
+  run()
 }
