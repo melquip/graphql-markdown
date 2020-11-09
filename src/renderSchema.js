@@ -413,14 +413,12 @@ function renderSchema(schema, options) {
             })
             let qArgs = []
             // validation
-            const validateData = (qArg, data) => {
+            const validateData = (qArg, data, sub = false) => {
               const argInData = qArg.name in data
               const isRequiredArg =
                 qArg.required || (qArg.isArray && qArg.isArrayRequired)
               if (!argInData && isRequiredArg) {
-                console.error(
-                  `\nQuery missing required parameter "${qArg.name}"!`
-                )
+                console.error(`\nRequired parameter "${qArg.name}" is missing!`)
                 return false
               }
               if (argInData) {
@@ -430,16 +428,29 @@ function renderSchema(schema, options) {
                       `Argument "${qArg.name}" should be of type "${qArg.type}".`
                     )
                     return false
+                  } else {
+                    const strQuotes = `${qArg.type === 'string' ? '"' : ''}`
+                    const output = `${sub ? '\n    ' : ''}${
+                      qArg.name
+                    }: ${strQuotes}${data[qArg.name]}${strQuotes}${
+                      sub ? ',' : ''
+                    }`
+                    if (sub) {
+                      qArgs[qArgs.length - 1] += output
+                    } else {
+                      qArgs.push(output)
+                    }
                   }
                 } else {
                   // console.log('recurse', qArg, data[qArg.name])
+                  qArgs.push(`${qArg.name}: {`)
                   for (const qSubArg of qArg.type) {
-                    if (!validateData(qSubArg, data[qArg.name])) return false
+                    validateData(qSubArg, data[qArg.name], true)
                   }
+                  qArgs[qArgs.length - 1] += '\n  }'
                   // console.log('\n\nreturned from recurse\n')
                 }
               }
-              return true
             }
             for (const qArg of queryArgs) {
               validateData(qArg, data)
@@ -451,11 +462,14 @@ function renderSchema(schema, options) {
             }
 }\n\n`
           }
-          /* test dev
-          allQueries[field.name]({
-            data: {}
-          }) 
-          */
+          /* test dev */
+          console.log(
+            allQueries[field.name]({
+              data: {
+                firstName: 'Yey'
+              }
+            })
+          )
         }
         if (field.isDeprecated) {
           printer('<p>⚠️ <strong>DEPRECATED</strong></p>')
