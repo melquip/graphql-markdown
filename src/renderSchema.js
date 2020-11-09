@@ -411,39 +411,42 @@ function renderSchema(schema, options) {
                   'NON_NULL'
               }
             })
-            let qArgs = ''
+            let qArgs = []
             // validation
             const validateData = (qArg, data) => {
               const argInData = qArg.name in data
               const isRequiredArg =
                 qArg.required || (qArg.isArray && qArg.isArrayRequired)
               if (!argInData && isRequiredArg) {
-                return console.error(
+                console.error(
                   `\nQuery missing required parameter "${qArg.name}"!`
                 )
+                return false
               }
               if (argInData) {
                 if (typeof qArg.type === 'string') {
                   if (typeof data[qArg.name] !== qArg.type) {
-                    return console.error(
+                    console.error(
                       `Argument "${qArg.name}" should be of type "${qArg.type}".`
                     )
+                    return false
                   }
                 } else {
-                  console.log('recurse', qArg, data[qArg.name])
+                  // console.log('recurse', qArg, data[qArg.name])
                   for (const qSubArg of qArg.type) {
-                    validateData(qSubArg, data[qArg.name])
+                    if (!validateData(qSubArg, data[qArg.name])) return false
                   }
-                  console.log('\n\nreturned from recurse\n')
+                  // console.log('\n\nreturned from recurse\n')
                 }
               }
+              return true
             }
             for (const qArg of queryArgs) {
               validateData(qArg, data)
             }
 
             return `\n${type.name.toLowerCase()} {
-  ${field.name} ${qArgs ? `(${qArgs})` : ''} ${
+  ${field.name} ${qArgs.length ? `(${qArgs.join(', ')})` : ''} ${
               qOutput ? `{\n${qOutput}\n  }` : ''
             }
 }\n\n`
