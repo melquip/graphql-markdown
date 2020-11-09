@@ -442,11 +442,11 @@ function renderSchema(schema, options) {
               validateData(qArg, data)
             }
 
-            return `\n\`\`\`\n${type.name.toLowerCase()} {
+            return `\n${type.name.toLowerCase()} {
   ${field.name} ${qArgs ? `(${qArgs})` : ''} ${
               qOutput ? `{\n${qOutput}\n  }` : ''
             }
-}\n\`\`\`\n\n`
+}\n\n`
           }
           /* test dev
           allQueries[field.name]({
