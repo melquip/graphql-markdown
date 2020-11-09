@@ -386,7 +386,7 @@ function renderSchema(schema, options) {
             .join(', ')}`
           const qOutput = `${objData(field.type, outTypes)}`
           const finalQuery = `\n\`\`\`\n${type.name.toLowerCase()} {
-  ${field.name} ${qArgs ? `(${qArgs})` : ''} ${
+  ${field.name}${qArgs ? ` (${qArgs})` : ''} ${
             qOutput ? `{\n${qOutput}\n  }` : ''
           }
 }\n\`\`\`\n\n`
@@ -457,7 +457,7 @@ function renderSchema(schema, options) {
             }
 
             return `\n${type.name.toLowerCase()} {
-  ${field.name} ${qArgs.length ? `(${qArgs.join(', ')})` : ''} ${
+  ${field.name}${qArgs.length ? ` (${qArgs.join(', ')})` : ''} ${
               qOutput ? `{\n${qOutput}\n  }` : ''
             }
 }\n\n`
