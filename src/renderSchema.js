@@ -413,6 +413,7 @@ function renderSchema(schema, options) {
             })
             let qArgs = []
             // validation
+            // todo: validate arrays
             const validateData = (qArg, data, sub = false) => {
               const argInData = qArg.name in data
               const isRequiredArg =
@@ -463,13 +464,13 @@ function renderSchema(schema, options) {
 }\n\n`
           }
           /* test dev */
-          console.log(
-            allQueries[field.name]({
-              data: {
-                firstName: 'Yey'
-              }
-            })
-          )
+          // console.log(
+          //   allQueries[field.name]({
+          //     data: {
+          //       firstName: 'Yey'
+          //     }
+          //   })
+          // )
         }
         if (field.isDeprecated) {
           printer('<p>⚠️ <strong>DEPRECATED</strong></p>')
